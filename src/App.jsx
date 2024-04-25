@@ -48,12 +48,73 @@ function filterProducts(userId, query, categoriesId) {
   return filteredProducts;
 }
 
+function sortProducts(filteredProducts, sortBy) {
+  let sortedProducts = [...filteredProducts];
+
+  if (sortBy[0] === 'ID') {
+    sortedProducts = sortedProducts.toSorted((product1, product2) => {
+      const result = product1.id - product2.id;
+
+      if (sortBy[1] === 'asc') {
+        return result;
+      }
+
+      return result * -1;
+    });
+  }
+
+  if (sortBy[0] === 'Product') {
+    sortedProducts = sortedProducts.toSorted((product1, product2) => {
+      const result = product1.name.localeCompare(product2.name);
+
+      if (sortBy[1] === 'asc') {
+        return result;
+      }
+
+      return result * -1;
+    });
+  }
+
+  if (sortBy[0] === 'Category') {
+    sortedProducts = sortedProducts.toSorted((product1, product2) => {
+      const result = product1.category.title.localeCompare(
+        product2.category.title,
+      );
+
+      if (sortBy[1] === 'asc') {
+        return result;
+      }
+
+      return result * -1;
+    });
+  }
+
+  if (sortBy[0] === 'User') {
+    sortedProducts = sortedProducts.toSorted((product1, product2) => {
+      const result = product1.user.name.localeCompare(product2.user.name);
+
+      if (sortBy[1] === 'asc') {
+        return result;
+      }
+
+      return result * -1;
+    });
+  }
+
+  return sortedProducts;
+}
+
 export const App = () => {
   const [userId, setUserId] = useState('');
   const [query, setQuery] = useState('');
   const [categoriesId, setCategoriesId] = useState([]);
+  const [sortBy, setSortBy] = useState([]);
 
-  const visibleProducts = filterProducts(userId, query, categoriesId);
+  let visibleProducts = filterProducts(userId, query, categoriesId);
+
+  if (sortBy.length > 0) {
+    visibleProducts = sortProducts(visibleProducts, sortBy);
+  }
 
   const handleCategoriesAdd = id => {
     if (categoriesId.includes(id)) {
@@ -67,6 +128,36 @@ export const App = () => {
     setQuery('');
     setUserId('');
     setCategoriesId([]);
+  };
+
+  const handleSortBy = columnName => {
+    if (!sortBy.includes(columnName)) {
+      setSortBy([columnName, 'asc']);
+    }
+
+    if (sortBy[0] === columnName && sortBy[1] === 'asc') {
+      setSortBy([columnName, 'desc']);
+    }
+
+    if (sortBy[0] === columnName && sortBy[1] === 'desc') {
+      setSortBy([]);
+    }
+  };
+
+  const handleColumnIcon = columnName => {
+    if (!sortBy.includes(columnName)) {
+      return 'fas fa-sort';
+    }
+
+    if (sortBy[0] === columnName && sortBy[1] === 'asc') {
+      return 'fas fa-sort-up';
+    }
+
+    if (sortBy[0] === columnName && sortBy[1] === 'desc') {
+      return 'fas fa-sort-down';
+    }
+
+    return 'fas fa-sort';
   };
 
   return (
@@ -181,49 +272,21 @@ export const App = () => {
             >
               <thead>
                 <tr>
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      ID
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Product
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-down" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Category
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-up" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      User
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
+                  {['ID', 'Product', 'Category', 'User'].map(columnName => (
+                    <th>
+                      <span className="is-flex is-flex-wrap-nowrap">
+                        {columnName}
+                        <a href="#/" onClick={() => handleSortBy(columnName)}>
+                          <span className="icon">
+                            <i
+                              data-cy="SortIcon"
+                              className={handleColumnIcon(columnName)}
+                            />
+                          </span>
+                        </a>
+                      </span>
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
